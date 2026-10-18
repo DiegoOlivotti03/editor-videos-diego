@@ -23,3 +23,10 @@ Escolha dos painéis: partir do que a pessoa fala, um painel novo a cada 1,5 a 4
 - Corte a cada ~2 s, alinhado ao início da frase. Legenda de 2 a 3 palavras em caixa alta (`captionMax: 3`, `captionUpper: true`), sem cor de destaque. Áudio da referência em -14 LUFS (o nosso sai em -16).
 - Gancho nos 4 primeiros segundos com promessa; CTA com uma palavra e passos numerados (`steps`), sem inventar passo que a pessoa não falou.
 - O link da referência baixa com `yt-dlp` (`pip install yt-dlp`), mesmo o Instagram.
+
+## Fluxo de entrega e preferências do Diego (aprendido nos primeiros Reels)
+- **Vídeo bruto:** o chat limita arquivo a 30 MB. O Diego sobe no Google Drive ("qualquer pessoa com o link"); baixar com `pip install gdown` e `gdown <link-da-pasta>`. Pasta ou arquivo funcionam.
+- **Entrega:** o render sai grande (~50 MB); comprimir com `ffmpeg -c:v libx264 -crf 26 -preset slow -c:a copy -movflags +faststart` (fica ~13 a 18 MB) e enviar com SendUserFile junto com a capa. Dizer o que é ilustração e o que não foi conferido (não dá para ouvir o áudio nem ver o vídeo em movimento, só quadros).
+- **Gostos:** natural (não artificial), rosto sempre inteiro e visível (queixo sem cortar), imagem real conhecida do público (escudo, bandeira), animação que ilustra a fala, flash com som em poucos momentos, camisa preta e fundo colorido (teste; perguntar se mantém).
+- **Pontos de atenção:** `padronizar.py` leva ~8 min por 50 s de vídeo; `app/public/imagens/` fica fora do git (baixar de novo); Wikipédia: só a API REST de resumo, com User-Agent e pausa entre chamadas.
+- **Pedir ao Diego** quando faltar: fotos dele nos trechos pessoais, prints de notícia, estádio/torcida; sugerir o gancho com promessa nos 4 primeiros segundos e um CTA com uma palavra só e entrega clara.
