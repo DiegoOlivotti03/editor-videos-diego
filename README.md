@@ -34,6 +34,14 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 - `bars`: `data.at, data.targets?` (barras que caem)
 - `line`: gráfico descendo
 - `question`: `data.items: [{value, at}], data.qAt`
+- `pie`: `data.value` (0-100), `at`, `caption: [linhas]` (rosca que enche e conta o número)
+- `timeline`: `data.steps: [{label, at}]` (linha do tempo, cada marco acende em `at`)
+- `scale`: `data.left, right, at` (balança que vira para o lado de `right` em `at`)
+- `checklist`: `data.items: [{text, at}]` (itens marcados um a um)
+- `counter`: `data.from, to, at, caption?, prefix?, suffix?` (número que conta)
+- `versus`: `data.left, right, at, symbol?` (dois cartões com "=" ou "VS" no meio)
+- `swap`: `data.from, to, at` (palavra riscada e substituída)
+- `chat`: `data.comment, at, reply, replyAt` (comentário que recebe a resposta no direct)
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.
 
