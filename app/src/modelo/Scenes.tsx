@@ -441,7 +441,75 @@ const Pics: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 };
 
-const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics } as const;
+/** Boneco de palito. `leg` e `arm` em graus (balanço); `face` = 1 olha para a direita, -1 para a esquerda. */
+const Stick: React.FC<{ x: number; y: number; face?: 1 | -1; leg?: number; arm?: number; color?: string; lean?: number }> = ({ x, y, face = 1, leg = 0, arm = 0, color = M.ink, lean = 0 }) => {
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const hip = { x: 0, y: 0 }, neck = { x: Math.sin(rad(lean)) * 110, y: -Math.cos(rad(lean)) * 110 };
+  const limb = (from: { x: number; y: number }, len: number, ang: number) => ({ x: from.x + Math.sin(rad(ang)) * len * face, y: from.y + Math.cos(rad(ang)) * len });
+  const l1 = limb(hip, 120, 12 + leg), l2 = limb(hip, 120, -12 - leg * 0.4);
+  const a1 = limb(neck, 90, 40 + arm), a2 = limb(neck, 90, -40 - arm);
+  const ln = (p: { x: number; y: number }, from = { x: 0, y: 0 }) => <line x1={from.x} y1={from.y} x2={p.x} y2={p.y} stroke={color} strokeWidth={14} strokeLinecap="round" />;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {ln(neck, hip)}{ln(l1)}{ln(l2)}{ln(a1, neck)}{ln(a2, neck)}
+      <circle cx={neck.x + Math.sin(rad(lean)) * 38} cy={neck.y - Math.cos(rad(lean)) * 38} r={38} fill={M.bg} stroke={color} strokeWidth={14} />
+    </g>
+  );
+};
+
+/** Dois bonecos passando a bola (futebol). A bola vai e volta a cada `period` s. */
+const Kick: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { period?: number };
+  const P = d?.period ?? 1.1, e = pop(scene.from + 0.05);
+  const ph = ((t - scene.from) / P) % 2, go = ph < 1, u = go ? ph : ph - 1;
+  const A = 190, B = 710, gy = 320;
+  const bx = go ? A + 60 + (B - A - 120) * u : B - 60 - (B - A - 120) * u;
+  const by = gy - 20 - Math.sin(Math.PI * u) * 140;
+  const kickA = go ? Math.max(0, 1 - u * 5) * 55 : 0, kickB = !go ? Math.max(0, 1 - u * 5) * 55 : 0;
+  return (
+    <Area>
+      <svg width={900} height={460} viewBox="0 0 900 460" style={{ opacity: e, transform: `translateY(${interpolate(e, [0, 1], [30, 0])}px)` }}>
+        <line x1={40} y1={gy + 130} x2={860} y2={gy + 130} stroke={M.dim} strokeWidth={6} strokeLinecap="round" opacity={0.5} />
+        <Stick x={A} y={gy} face={1} leg={kickA} arm={kickA * 0.4} lean={kickA * 0.15} />
+        <Stick x={B} y={gy} face={-1} leg={kickB} arm={kickB * 0.4} lean={-kickB * 0.15} color={M.hero} />
+        <ellipse cx={bx} cy={gy + 128} rx={26 - Math.sin(Math.PI * u) * 8} ry={7} fill="#17171A" opacity={0.18} />
+        <g transform={`translate(${bx} ${by + 112}) rotate(${(t - scene.from) * 540})`}>
+          <circle r={30} fill="#fff" stroke={M.ink} strokeWidth={6} />
+          <polygon points="0,-13 12,-4 7,11 -7,11 -12,-4" fill={M.ink} />
+        </g>
+      </svg>
+    </Area>
+  );
+};
+
+/** Dois bonecos discutindo: um aprova (✓) em `at`, o outro reprova (✕) em `at2`. */
+const Debate: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { at: number; at2: number; left?: string; right?: string };
+  const e = pop(scene.from + 0.05), b1 = pop(d.at, M.spring.stamp), b2 = pop(d.at2, M.spring.stamp);
+  const bob = (k: number) => Math.sin((t - scene.from) * 6 + k) * 4;
+  const bubble = (x: number, p: number, ok: boolean) => (
+    <g transform={`translate(${x} 80) scale(${p})`} opacity={p}>
+      <rect x={-90} y={-70} width={180} height={140} rx={40} fill={ok ? "#2E9E5B" : M.hero} />
+      <polygon points="-18,68 18,68 0,98" fill={ok ? "#2E9E5B" : M.hero} />
+      {ok ? <path d="M-42 4l28 28 56-62" fill="none" stroke="#fff" strokeWidth={18} strokeLinecap="round" strokeLinejoin="round" /> : <path d="M-36 -36l72 72M36 -36l-72 72" fill="none" stroke="#fff" strokeWidth={18} strokeLinecap="round" />}
+    </g>
+  );
+  return (
+    <Area>
+      <svg width={900} height={460} viewBox="0 0 900 460" style={{ opacity: e }}>
+        <line x1={40} y1={455} x2={860} y2={455} stroke={M.dim} strokeWidth={6} strokeLinecap="round" opacity={0.5} />
+        {bubble(250, b1, true)}
+        {bubble(650, b2, false)}
+        <Stick x={250} y={335 + bob(0)} face={1} arm={b1 > 0.5 ? 70 : 0} />
+        <Stick x={650} y={335 + bob(2)} face={-1} arm={b2 > 0.5 ? 70 : 0} color={M.hero} />
+      </svg>
+    </Area>
+  );
+};
+
+const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics, kick: Kick, debate: Debate } as const;
 
 export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
   const C = table[scene.kind];

@@ -12,3 +12,8 @@ Escolha dos painéis: partir do que a pessoa fala, um painel novo a cada 1,5 a 4
 - **Chromium**: `render-reel.sh` usa `/opt/pw-browsers/chromium_headless_shell-*/…/headless_shell` se existir.
 - Instagram não abre pelo sandbox; peça o arquivo do vídeo de referência.
 - Falas e saídas ficam fora do git (`app/public/<nome>/`, `app/out/`).
+
+## Banco de ideias de animação (pedido do Diego)
+- Quando a fala citar uma ação ou situação, ilustrar com boneco de palito animado: `kick` (jogar bola), `debate` (um acha certo, outro errado). Criar painéis novos do mesmo jeito (`Stick` em `Scenes.tsx`) para outras falas (correr, pagar conta, vender, reunião).
+- Flash com som de câmera (`flashes`) em 4 a 6 viradas de impacto, não em todas.
+- Imagem padronizada: camisa preta e fundo colorido via `scripts/padronizar.py` (precisa de `./setup.sh`).

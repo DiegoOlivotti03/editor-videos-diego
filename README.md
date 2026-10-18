@@ -13,6 +13,15 @@ Layouts: tela dividida, só o painel, só a pessoa, com transição deslizando e
 npm --prefix app run studio                  # (opcional) pré-visualizar no navegador
 ```
 
+## Padronizar a imagem (camisa preta + fundo colorido)
+
+```bash
+python3 scripts/padronizar.py app/public/meu-reel/falas.mp4 app/public/meu-reel/falas-pad.mp4   # ~8 min para 50 s
+# depois: "speaker": "meu-reel/falas-pad.mp4" no modelo.json
+python3 scripts/padronizar.py falas.mp4 teste.png --frame 20   # só um quadro de teste (segundos)
+```
+Opções: `--cor1/--cor2` (degradê do fundo, padrão laranja da marca), `--camisa` (brilho da camisa). Também nivela a exposição entre gravações de lugares diferentes.
+
 ## modelo.json
 
 | campo | o que é |
@@ -23,6 +32,7 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 | `highlight` | palavras da legenda que ficam laranja |
 | `layout` | `[{ "from": seg, "mode": "split" \| "speaker" \| "panel" }]`; o primeiro vale desde 0 |
 | `scenes` | painéis animados (abaixo) |
+| `flashes` | instantes (s) com flash branco e som de câmera (`sfx/flash.wav`) |
 | `zoomCuts` | instantes do zoom alternado (vêm dos cortes de silêncio) |
 
 ### Painéis (`scenes`): `{ kind, from, to, label, data }`, tempos em segundos do vídeo já cortado
@@ -42,6 +52,8 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 - `versus`: `data.left, right, at, symbol?` (dois cartões com "=" ou "VS" no meio)
 - `swap`: `data.from, to, at` (palavra riscada e substituída)
 - `pics`: `data.items: [{src, at, label?, frame?}], badge?: {text, at}, height?` (imagens reais de `app/public/imagens/`: escudo, bandeira, foto)
+- `kick`: dois bonecos passando a bola (`data.period?`)
+- `debate`: dois bonecos, um aprova e outro reprova (`data.at, at2`)
 - `chat`: `data.comment, at, reply, replyAt` (comentário que recebe a resposta no direct)
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.

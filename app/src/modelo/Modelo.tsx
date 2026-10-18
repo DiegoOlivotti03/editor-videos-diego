@@ -69,6 +69,19 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
 
       <Captions words={props.captions} highlight={props.highlight} top={cur.cap} />
 
+      {(props.flashes ?? []).map((t, i) => {
+        const f = Math.round(t * fps);
+        const o = interpolate(frame, [f, f + 1, f + 8], [0, 0.85, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        return (
+          <React.Fragment key={`f${i}`}>
+            <AbsoluteFill style={{ background: "#fff", opacity: o, pointerEvents: "none" }} />
+            <Sequence from={Math.max(0, f - 1)} durationInFrames={Math.round(fps * 0.5)}>
+              <Audio src={staticFile("sfx/flash.wav")} volume={0.35} />
+            </Sequence>
+          </React.Fragment>
+        );
+      })}
+
       {props.sfx
         ? props.scenes.slice(1).map((s, i) => (
             <Sequence key={`s${i}`} from={Math.max(0, Math.round(s.from * fps) - 2)} durationInFrames={40}>
