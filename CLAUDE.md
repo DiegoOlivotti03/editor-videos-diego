@@ -38,3 +38,7 @@ Ordem: `novo-reel.sh` -> corrigir erros do Whisper nas legendas (nomes de marca,
 - **Painel de cima menor** (splitRatio 0.44) e `faceY` ajustado por vídeo (checar o quadro: cabeça inteira, queixo e ombros visíveis; 62 no 1º vídeo, 76 no do carro).
 - **Personagem fixo = o boneco do Diego** (`boneco`, `Cacheado` em `Scenes.tsx`): busto com cabelo cacheado e regata azul; só reage e ilustra (humores: neutro, feliz, chocado, pensativo, apontando, triste; itens: carro, robô). Aparece em todo vídeo. A Bolinha (`mascot`) fica como alternativa.
 - Imagens reais de marcas e bandeiras pela Wikipédia (en.wikipedia também serve: BYD_Company); o painel só mostra o que a pessoa falou. Nunca inventar o que ela não disse (ex.: palavra-chave do CTA).
+
+## Áudio e sons (pedido do Diego)
+- **Voz com som de podcast:** `scripts/voz-podcast.sh falas-ac.mp4 falas-voz.mp4` (reduz ruído, mais corpo e presença, compressão, -15 LUFS; o render fecha perto de -14/-15). Usar `falas-voz.mp4` como `speaker`. Não dá para ouvir; conferir só LUFS/LRA e pedir ao Diego para ouvir.
+- **O único efeito sonoro é o clique de câmera (flash)** em trocas de cena (`flashes`, ~1 a cada 3 cenas e nas viradas de layout; não deixar dois a menos de ~1,5 s). `sfx` fica `false` (sem whoosh/pop). Sem música no arquivo.

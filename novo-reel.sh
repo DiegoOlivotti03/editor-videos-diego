@@ -15,7 +15,7 @@ json.dump({
   "speaker": f"{nome}/falas.mp4", "durationSeconds": cuts["duration"], "fps": 30,
   "splitRatio": 0.47, "faceY": 40, "captions": caps, "highlight": [],
   "scenes": [], "layout": [{"from": 0, "mode": "split"}],
-  "zoomCuts": cuts["joints"], "zoomLevel": 1.04, "sfx": True,
+  "zoomCuts": cuts["joints"], "zoomLevel": 1.04, "sfx": False,
 }, open(f"{d}/modelo.json", "w"), ensure_ascii=False, indent=1)
 PY
 echo; echo "Pronto: app/public/$NOME/modelo.json. Falta preencher 'scenes', 'layout' e 'highlight' (veja README.md)."
