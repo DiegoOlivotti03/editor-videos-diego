@@ -522,6 +522,10 @@ const Bolinha: React.FC<{ mood: "olhando" | "empresario" | "estudando" | "quebra
       <g transform={`rotate(${tilt})`}>
         <circle r={105} fill="#fff" stroke={M.ink} strokeWidth={10} />
         <polygon points="0,-102 22,-86 14,-62 -14,-62 -22,-86" fill={M.ink} />
+        <g transform={`translate(58 -112) rotate(${Math.sin(t * 2) * 8})`}>
+          <path d="M0 18 Q-4 4 0 -6" stroke="#2E9E5B" strokeWidth={5} fill="none" strokeLinecap="round" />
+          {[0, 90, 180, 270].map((a) => <ellipse key={a} cx={0} cy={-18} rx={9} ry={13} fill="#2E9E5B" transform={`translate(0 6) rotate(${a} 0 0) translate(0 -2)`} />)}
+        </g>
         <polygon points="-96,-34 -78,-52 -62,-34 -70,-12 -92,-12" fill={M.ink} />
         <polygon points="96,-34 78,-52 62,-34 70,-12 92,-12" fill={M.ink} />
         {[-34, 34].map((x, i) => (

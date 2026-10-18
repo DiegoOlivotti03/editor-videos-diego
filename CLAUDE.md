@@ -30,3 +30,9 @@ Escolha dos painéis: partir do que a pessoa fala, um painel novo a cada 1,5 a 4
 - **Gostos:** natural (não artificial), rosto sempre inteiro e visível (queixo sem cortar), imagem real conhecida do público (escudo, bandeira), animação que ilustra a fala, flash com som em poucos momentos, camisa preta e fundo colorido (teste; perguntar se mantém).
 - **Pontos de atenção:** `padronizar.py` leva ~8 min por 50 s de vídeo; `app/public/imagens/` fica fora do git (baixar de novo); Wikipédia: só a API REST de resumo, com User-Agent e pausa entre chamadas.
 - **Pedir ao Diego** quando faltar: fotos dele nos trechos pessoais, prints de notícia, estádio/torcida; sugerir o gancho com promessa nos 4 primeiros segundos e um CTA com uma palavra só e entrega clara.
+
+## Formato v2 (combinado com o Diego depois do Reel 1)
+Ordem: `novo-reel.sh` -> ler a transcrição e decidir onde termina o gancho -> `python3 scripts/acelerar-gancho.py <nome> <segundos> 1.2` (acelera só o gancho, voz na mesma altura, reajusta legendas e zooms; rodar antes de padronizar e de escrever as cenas) -> `scripts/padronizar.py` sobre `falas-ac.mp4` (manter camisa preta e fundo laranja, é o padrão) e apontar `speaker` para o arquivo padronizado -> escrever cenas na linha do tempo nova -> `render-reel.sh`.
+- **Gancho em tela cheia:** layout `panel` do 0 até o fim do gancho (animação ocupando a tela), depois `split`. Gancho nos 4 a 6 primeiros segundos, com promessa.
+- **Painel de cima menor** (splitRatio 0.44) para o rosto ficar inteiro; manter. Cenas rápidas, 1,5 a 2,5 s.
+- **Bonequinho da sorte = a Bolinha** (mascote com trevo de 4 folhas na cabeça, `mascot`): aparece em todo vídeo, no gancho em tela cheia, em pelo menos dois outros momentos e no CTA, para criar a padronização visual do Diego. Humor muda com a fala.
