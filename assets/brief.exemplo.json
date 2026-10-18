@@ -1,0 +1,34 @@
+{
+  "brand": "diego",
+  "splitRatio": 0.44,
+  "faceY": 34,
+  "captionsCaps": false,
+  "sfx": true,
+  "hook": {
+    "text": "Saí de casa aos 15 anos",
+    "highlight": ["15"],
+    "from": 0,
+    "to": 2.2
+  },
+  "lowerThird": {
+    "line1": "@diegoolivotti",
+    "line2": "Fundador da IPPU · +50 franquias",
+    "from": 0.8,
+    "to": 3.6
+  },
+  "panels": [
+    {
+      "kind": "headline",
+      "from": 2.6,
+      "to": 5.4,
+      "source": "Minha história",
+      "text": "Do futebol às 50 franquias"
+    },
+    {
+      "kind": "stat",
+      "from": 5.6,
+      "to": 8.6,
+      "stat": { "value": 50, "prefix": "+", "label": "franquias da IPPU" }
+    }
+  ]
+}

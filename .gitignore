@@ -1,0 +1,7 @@
+node_modules/
+app/out/
+app/public/*/
+!app/public/fonts/
+!app/public/sfx/
+trabalho/
+*.mp4
