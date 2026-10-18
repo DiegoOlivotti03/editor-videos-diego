@@ -58,7 +58,7 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
       </div>
 
       <div style={{ position: "absolute", left: 0, top: 0, width, height: splitY, overflow: "hidden" }}>
-       <div style={{ position: "absolute", left: 0, top: panelTop, width, height: splitFull, transform: `scale(${1 + 0.5 * panelGrow})`, transformOrigin: "50% 71%" }}>
+       <div style={{ position: "absolute", left: 0, top: panelTop, width, height: splitFull, transform: `scale(${1 + 0.15 * panelGrow})`, transformOrigin: "50% 71%" }}>
         {props.scenes.map((s, i) => (
           <Sequence key={i} from={Math.round(s.from * fps)} durationInFrames={Math.round((s.to - s.from) * fps) + 10}>
             <SceneView scene={s} />

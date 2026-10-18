@@ -1,6 +1,6 @@
 import type { Word } from "../types";
 
-export type SceneKind = "bigword" | "duo" | "calendar" | "boleto" | "bars" | "line" | "question" | "pie" | "timeline" | "scale" | "checklist" | "counter" | "versus" | "swap" | "chat" | "pics" | "kick" | "debate" | "mascot" | "gavel" | "crowd" | "news" | "steps";
+export type SceneKind = "bigword" | "duo" | "calendar" | "boleto" | "bars" | "line" | "question" | "pie" | "timeline" | "scale" | "checklist" | "counter" | "versus" | "swap" | "chat" | "pics" | "kick" | "debate" | "mascot" | "gavel" | "crowd" | "news" | "steps" | "boneco";
 
 /** Um painel animado da metade de cima. Tempos em segundos na linha do tempo do vídeo cortado. */
 export type Scene = {

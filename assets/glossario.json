@@ -1,7 +1,10 @@
 {
-  "ipu": "IPPU",
-  "ipú": "IPPU",
-  "ippo": "IPPU",
-  "olivote": "Olivote",
-  "tênis": "tênis"
+ "ipu": "IPPU",
+ "ipú": "IPPU",
+ "ippo": "IPPU",
+ "olivote": "Olivote",
+ "tênis": "tênis",
+ "bid": "BYD",
+ "manóide": "humanoide",
+ "manóides": "humanoides"
 }

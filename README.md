@@ -60,6 +60,7 @@ Opções: `--cor1/--cor2` (degradê do fundo, padrão laranja da marca), `--cami
 - `crowd`: torcida de bolinhas, `data.at, text`
 - `news`: janela com título digitando, `data.title, source, tag, sticker?, markAt?`
 - `steps`: passos numerados (CTA), `data.items: [{text, sub?, at}]`
+- `boneco`: o boneco do Diego, `data.humor`, `caption`, `accent`, `item` (carro, robo)
 - `chat`: `data.comment, at, reply, replyAt` (comentário que recebe a resposta no direct)
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.

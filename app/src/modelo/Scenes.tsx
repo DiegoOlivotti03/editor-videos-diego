@@ -239,7 +239,7 @@ const Question: React.FC<{ scene: Scene }> = ({ scene }) => {
 /** Rosca que enche até `value` % e conta o número no centro. */
 const Pie: React.FC<{ scene: Scene }> = ({ scene }) => {
   const { t } = useClock(scene);
-  const d = scene.data as { value: number; at?: number; caption?: string[] };
+  const d = scene.data as { value: number; at?: number; caption?: string[]; size?: number };
   const at = d.at ?? scene.from + 0.3;
   const p = interpolate(t, [at, at + 1.1], [0, 1], { easing: M.out, ...clamp });
   const R = 170, C = 2 * Math.PI * R;
@@ -251,7 +251,7 @@ const Pie: React.FC<{ scene: Scene }> = ({ scene }) => {
         <text textAnchor="middle" dominantBaseline="central" fontFamily={M.font} fontWeight={900} fontSize={100} letterSpacing="-0.03em" fill={M.ink}>{Math.round(d.value * p)}%</text>
       </svg>
       {d.caption ? (
-        <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 112, lineHeight: 0.98, letterSpacing: "-0.03em", color: M.ink }}>
+        <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: d.size ?? 112, lineHeight: 0.98, letterSpacing: "-0.03em", color: M.ink }}>
           {d.caption.map((l, i) => <div key={i} style={{ opacity: interpolate(t, [at + 0.2 + i * 0.2, at + 0.6 + i * 0.2], [0, 1], clamp) }}>{l}</div>)}
         </div>
       ) : null}
@@ -354,7 +354,7 @@ const Counter: React.FC<{ scene: Scene }> = ({ scene }) => {
   const cap = pop(d.at + 0.5);
   return (
     <Area style={{ flexDirection: "column", gap: 26 }}>
-      <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 300, lineHeight: 1, letterSpacing: "-0.04em", color: p >= 1 ? M.hero : M.ink }}>
+      <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: `${d.prefix ?? ""}${d.to}${d.suffix ?? ""}`.length > 5 ? 210 : 300, lineHeight: 1, letterSpacing: "-0.04em", whiteSpace: "nowrap", color: p >= 1 ? M.hero : M.ink }}>
         {d.prefix}{Math.round(d.from + (d.to - d.from) * p)}{d.suffix}
       </div>
       {d.caption ? <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 80, letterSpacing: "-0.02em", color: M.ink, opacity: cap, transform: `translateY(${interpolate(cap, [0, 1], [24, 0])}px)` }}>{d.caption}</div> : null}
@@ -704,7 +704,108 @@ const Steps: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 };
 
-const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics, kick: Kick, debate: Debate, mascot: Mascot, gavel: Gavel, crowd: Crowd, news: News, steps: Steps } as const;
+type Humor = "neutro" | "feliz" | "chocado" | "pensativo" | "apontando" | "triste";
+
+/** O boneco do Diego: busto com cabelo cacheado e regata azul. Só reage e ilustra. `t` em s. */
+const Cacheado: React.FC<{ humor: Humor; t: number; size?: number }> = ({ humor, t, size = 330 }) => {
+  const HAIR = "#3B2A22", SKIN = "#E2A57E", SKIN2 = "#C98962", TOP = "#2447D1";
+  const look = Math.sin(t * 2) * 5, blink = Math.sin(t * 1.4) > 0.975 ? 0.1 : 1;
+  const bob = Math.sin(t * 3.2) * 4, shock = humor === "chocado";
+  const talk = humor === "feliz" || humor === "apontando" ? (Math.sin(t * 14) > 0 ? 1 : 0.3) : 0;
+  const brow = (x: number, tilt: number, lift: number) => `M${x - 17} ${-34 - lift + tilt} L${x + 17} ${-34 - lift - tilt}`;
+  const mouth = humor === "triste" ? <path d="M-22 58 Q0 40 22 58" fill="none" stroke={HAIR} strokeWidth={7} strokeLinecap="round" />
+    : shock ? <ellipse cx={0} cy={54} rx={14} ry={20} fill="#6B2A22" stroke={HAIR} strokeWidth={5} />
+    : humor === "pensativo" ? <path d="M-16 54 Q-2 50 20 44" fill="none" stroke={HAIR} strokeWidth={7} strokeLinecap="round" />
+    : <path d={`M-28 44 Q0 ${44 + 22 * (talk || 1)} 28 44 Z`} fill="#fff" stroke={HAIR} strokeWidth={6} strokeLinejoin="round" />;
+  const arm = (x1: number, y1: number, x2: number, y2: number) => <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={SKIN} strokeWidth={34} strokeLinecap="round" />;
+  const curls = Array.from({ length: 10 }, (_, i) => { const a = (-175 + i * 17) * (Math.PI / 180); return [Math.cos(a) * 66, -8 + Math.sin(a) * 66]; });
+  return (
+    <svg width={size} height={size * 1.25} viewBox="-160 -135 320 400" style={{ overflow: "visible" }}>
+      <ellipse cx={0} cy={252} rx={110} ry={10} fill="#17171A" opacity={0.12} />
+      <g transform={`translate(0 ${bob})`}>
+        {humor === "apontando" ? <>{arm(92, 135, 150, 20)}<circle cx={152} cy={14} r={19} fill={SKIN} /><line x1={152} y1={8} x2={160} y2={-30} stroke={SKIN} strokeWidth={14} strokeLinecap="round" /></>
+          : humor === "pensativo" ? <>{arm(92, 135, 64, 78)}<circle cx={46} cy={66} r={19} fill={SKIN} /></>
+          : shock ? <>{arm(92, 135, 112, 30)}{arm(-92, 135, -112, 30)}<circle cx={112} cy={22} r={19} fill={SKIN} /><circle cx={-112} cy={22} r={19} fill={SKIN} /></>
+          : <>{arm(92, 135, 132, 215)}{arm(-92, 135, -132, 215)}</>}
+        <rect x={-24} y={64} width={48} height={50} fill={SKIN2} />
+        <path d="M-118 255 Q-118 125 -44 112 L44 112 Q118 125 118 255 Z" fill={TOP} />
+        <path d="M-36 112 Q0 150 36 112 Z" fill={SKIN2} />
+        {curls.map(([x, y], i) => <circle key={`b${i}`} cx={x} cy={y} r={30} fill={HAIR} />)}
+        <circle cx={-82} cy={6} r={17} fill={SKIN2} /><circle cx={82} cy={6} r={17} fill={SKIN2} />
+        <circle cx={0} cy={0} r={82} fill={SKIN} />
+        {[-52, -26, 0, 26, 52].map((x, i) => <circle key={`f${i}`} cx={x} cy={-76 + Math.abs(x) * 0.28} r={22} fill={HAIR} />)}
+        {[-31, 31].map((x, i) => (
+          <g key={i} transform={`translate(${x} -4) scale(1 ${blink})`}>
+            <ellipse rx={shock ? 18 : 15} ry={shock ? 22 : 16} fill="#fff" stroke={HAIR} strokeWidth={4} />
+            <circle cx={look * 0.7} cy={humor === "pensativo" ? -5 : 0} r={shock ? 6 : 8} fill={HAIR} />
+          </g>
+        ))}
+        <path d={brow(-31, humor === "triste" ? -7 : humor === "pensativo" ? 2 : 0, shock ? 14 : 0)} stroke={HAIR} strokeWidth={9} strokeLinecap="round" />
+        <path d={brow(31, humor === "triste" ? 7 : humor === "pensativo" ? -5 : 0, shock || humor === "pensativo" ? 14 : 0).replace(/(-?\d+) (-?\d+) L(-?\d+) (-?\d+)/, (_m, a, b, c, d) => `${a} ${b} L${c} ${d}`)} stroke={HAIR} strokeWidth={9} strokeLinecap="round" />
+        <path d="M0 10 Q9 24 -2 28" fill="none" stroke={SKIN2} strokeWidth={6} strokeLinecap="round" />
+        {mouth}
+      </g>
+    </svg>
+  );
+};
+
+const Carro: React.FC<{ t: number }> = ({ t }) => (
+  <svg width={380} height={220} viewBox="0 0 380 220" style={{ overflow: "visible" }}>
+    <path d="M20 150 Q20 100 70 92 L120 50 Q130 40 150 40 L240 40 Q262 40 274 56 L310 92 Q360 98 362 150 Z" fill={M.hero} stroke={M.ink} strokeWidth={9} strokeLinejoin="round" />
+    <path d="M130 56 L168 56 L168 92 L106 92 Z M184 56 L238 56 L276 92 L184 92 Z" fill="#CFE6F5" stroke={M.ink} strokeWidth={6} strokeLinejoin="round" />
+    {[100, 290].map((x) => (
+      <g key={x} transform={`translate(${x} 152) rotate(${t * 480})`}>
+        <circle r={36} fill={M.ink} /><circle r={16} fill="#fff" />
+        <line x1={-16} y1={0} x2={16} y2={0} stroke={M.ink} strokeWidth={5} />
+      </g>
+    ))}
+  </svg>
+);
+
+const Robo: React.FC<{ t: number }> = ({ t }) => (
+  <svg width={300} height={340} viewBox="-150 -170 300 340" style={{ overflow: "visible" }}>
+    <line x1={0} y1={-110} x2={0} y2={-150} stroke={M.ink} strokeWidth={9} strokeLinecap="round" />
+    <circle cx={0} cy={-154} r={14} fill={M.hero} opacity={0.5 + 0.5 * Math.sin(t * 6)} />
+    <rect x={-100} y={-110} width={200} height={150} rx={36} fill="#fff" stroke={M.ink} strokeWidth={9} />
+    {[-40, 40].map((x) => <circle key={x} cx={x} cy={-45} r={24} fill={M.ink}><title>olho</title></circle>)}
+    {[-40, 40].map((x) => <circle key={`l${x}`} cx={x + Math.sin(t * 2) * 6} cy={-45} r={9} fill="#6AB7FF" />)}
+    <rect x={-46} y={0} width={92} height={22} rx={10} fill="none" stroke={M.ink} strokeWidth={7} />
+    {[-23, 0, 23].map((x) => <line key={x} x1={x} y1={0} x2={x} y2={22} stroke={M.ink} strokeWidth={5} />)}
+    <rect x={-70} y={52} width={140} height={90} rx={22} fill="#fff" stroke={M.ink} strokeWidth={9} />
+    <circle cx={0} cy={97} r={16} fill={M.hero} />
+  </svg>
+);
+
+/** Cena com o boneco do Diego. `data.humor`, `data.caption`, `data.accent`, `data.item` ("carro" | "robo") opcional. */
+const Boneco: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { humor: Humor; caption?: string[]; accent?: number; item?: "carro" | "robo" };
+  const e = pop(scene.from + 0.04, M.spring.snap), rel = t - scene.from;
+  const ip = d.item ? pop(scene.from + 0.2, M.spring.snap) : 0;
+  const longest = d.caption ? Math.max(...d.caption.map((l) => l.length)) : 0;
+  return (
+    <Area style={{ gap: d.item ? 10 : 24 }}>
+      <div style={{ opacity: e, transform: `translateY(${interpolate(e, [0, 1], [60, 0])}px) scale(${interpolate(e, [0, 1], [0.8, 1])})` }}>
+        <Cacheado humor={d.humor} t={rel} size={d.item ? 290 : 320} />
+      </div>
+      {d.item ? (
+        <div style={{ opacity: ip, transform: `translateX(${interpolate(ip, [0, 1], [d.item === "carro" ? -140 : 40, 0])}px) scale(${d.item === "carro" ? 0.85 : 1})` }}>
+          {d.item === "carro" ? <Carro t={rel} /> : <Robo t={rel} />}
+        </div>
+      ) : null}
+      {d.caption ? (
+        <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: d.item ? 56 : longest > 10 ? 64 : longest > 7 ? 80 : 96, lineHeight: 0.98, letterSpacing: "-0.03em", color: M.ink }}>
+          {d.caption.map((l, i) => {
+            const p = pop(scene.from + 0.2 + i * 0.15);
+            return <div key={i} style={{ color: d.accent === i ? M.hero : M.ink, opacity: p, transform: `translateX(${interpolate(p, [0, 1], [40, 0])}px)` }}>{l}</div>;
+          })}
+        </div>
+      ) : null}
+    </Area>
+  );
+};
+
+const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics, kick: Kick, debate: Debate, mascot: Mascot, gavel: Gavel, crowd: Crowd, news: News, steps: Steps, boneco: Boneco } as const;
 
 export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
   const C = table[scene.kind];
