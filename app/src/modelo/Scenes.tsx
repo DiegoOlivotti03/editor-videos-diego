@@ -509,7 +509,198 @@ const Debate: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 };
 
-const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics, kick: Kick, debate: Debate } as const;
+/** Mascote: a Bolinha. `mood` muda o rosto e o acessório; `t` é o tempo em s para os movimentos. */
+const Bolinha: React.FC<{ mood: "olhando" | "empresario" | "estudando" | "quebrando" | "feliz"; t: number; size?: number; crack?: number }> = ({ mood, t, size = 340, crack = 0 }) => {
+  const look = Math.sin(t * 2.2) * 9;
+  const blink = Math.sin(t * 1.3) > 0.97 ? 0.1 : 1;
+  const sad = mood === "quebrando";
+  const mouth = sad ? "M-34 62 Q0 30 34 62" : mood === "olhando" ? "M-14 52 Q0 66 14 52" : "M-36 44 Q0 82 36 44";
+  const tilt = sad ? Math.sin(t * 9) * 2 * crack : Math.sin(t * 3) * 3;
+  return (
+    <svg width={size} height={size * 1.15} viewBox="-150 -130 300 345" style={{ overflow: "visible" }}>
+      <ellipse cx={0} cy={168} rx={90} ry={11} fill="#17171A" opacity={0.14} />
+      <g transform={`rotate(${tilt})`}>
+        <circle r={105} fill="#fff" stroke={M.ink} strokeWidth={10} />
+        <polygon points="0,-102 22,-86 14,-62 -14,-62 -22,-86" fill={M.ink} />
+        <polygon points="-96,-34 -78,-52 -62,-34 -70,-12 -92,-12" fill={M.ink} />
+        <polygon points="96,-34 78,-52 62,-34 70,-12 92,-12" fill={M.ink} />
+        {[-34, 34].map((x, i) => (
+          <g key={i} transform={`translate(${x} -12) scale(1 ${blink})`}>
+            <circle r={25} fill="#fff" stroke={M.ink} strokeWidth={6} />
+            <circle cx={look * (mood === "olhando" ? 1.6 : 0.6)} cy={mood === "estudando" ? 8 : 0} r={11} fill={M.ink} />
+          </g>
+        ))}
+        <path d={mouth} fill="none" stroke={M.ink} strokeWidth={7} strokeLinecap="round" />
+        {sad ? (
+          <>
+            <path d="M-8 -104 L10 -70 L-6 -50 L14 -20 L-4 6 L16 40 L2 70 L12 102" fill="none" stroke={M.hero} strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - crack} />
+            <path d="M70 -50 q12 22 0 30 q-12 -8 0 -30z" fill="#6AB7FF" opacity={0.9} transform={`translate(0 ${(t * 40) % 50})`} />
+          </>
+        ) : null}
+        {mood === "empresario" ? <polygon points="-12,104 12,104 18,150 0,166 -18,150" fill={M.hero} /> : null}
+      </g>
+      {mood === "estudando" ? (
+        <g transform="translate(0 120)">
+          <path d="M0 -6 L-95 -20 L-95 50 L0 62Z" fill="#fff" stroke={M.ink} strokeWidth={7} strokeLinejoin="round" />
+          <path d="M0 -6 L95 -20 L95 50 L0 62Z" fill="#fff" stroke={M.ink} strokeWidth={7} strokeLinejoin="round" />
+          {[0, 1, 2].map((i) => <line key={i} x1={-80} y1={4 + i * 16} x2={-14} y2={10 + i * 16} stroke={M.dim} strokeWidth={5} strokeLinecap="round" />)}
+          {[0, 1, 2].map((i) => <line key={i} x1={14} y1={10 + i * 16} x2={80} y2={4 + i * 16} stroke={M.dim} strokeWidth={5} strokeLinecap="round" />)}
+        </g>
+      ) : null}
+      {mood === "empresario" ? (
+        <g transform="translate(100 112)">
+          <rect x={-8} y={-16} width={60} height={46} rx={8} fill="#7A4A25" stroke={M.ink} strokeWidth={6} />
+          <path d="M8 -16 v-12 h28 v12" fill="none" stroke={M.ink} strokeWidth={6} />
+        </g>
+      ) : null}
+    </svg>
+  );
+};
+
+/** Cena com a Bolinha e uma legenda grande ao lado. `data.mood`, `data.caption: [linhas]`, `data.accent?: índice da linha laranja`. */
+const Mascot: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { mood: "olhando" | "empresario" | "estudando" | "quebrando" | "feliz"; caption?: string[]; accent?: number; at?: number };
+  const e = pop(scene.from + 0.05, M.spring.snap);
+  const at = d.at ?? scene.from + 0.5;
+  const crack = interpolate(t, [at, at + 0.7], [0, 1], { easing: M.out, ...clamp });
+  const bounce = Math.abs(Math.sin((t - scene.from) * 3.2)) * 18;
+  return (
+    <Area style={{ gap: 14 }}>
+      <div style={{ transform: `translateY(${-bounce + interpolate(e, [0, 1], [50, 0])}px) scale(${interpolate(e, [0, 1], [0.7, 1])})`, opacity: e }}>
+        <Bolinha mood={d.mood} t={t - scene.from} size={d.caption ? 330 : 400} crack={crack} />
+      </div>
+      {d.caption ? (
+        <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: Math.max(...d.caption.map((l) => l.length)) > 8 ? 74 : 92, lineHeight: 0.98, letterSpacing: "-0.03em", color: M.ink }}>
+          {d.caption.map((l, i) => {
+            const p = pop(scene.from + 0.25 + i * 0.2);
+            return <div key={i} style={{ color: d.accent === i ? M.hero : M.ink, opacity: p, transform: `translateX(${interpolate(p, [0, 1], [40, 0])}px)` }}>{l}</div>;
+          })}
+        </div>
+      ) : null}
+    </Area>
+  );
+};
+
+/** Martelo de leilão batendo; carimbo em `at`. */
+const Gavel: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { at: number; stamp: string };
+  const hit = pop(d.at, { damping: 12, stiffness: 300, mass: 0.5 });
+  const raise = interpolate(t, [scene.from + 0.1, d.at - 0.12], [-8, -62], { easing: M.out, ...clamp });
+  const ang = t < d.at - 0.12 ? raise : interpolate(hit, [0, 1], [-62, 4]);
+  const st = pop(d.at + 0.12, M.spring.stamp);
+  const ring = interpolate(t, [d.at, d.at + 0.35], [0, 1], { easing: M.out, ...clamp });
+  return (
+    <Area>
+      <svg width={900} height={460} viewBox="0 0 900 460">
+        <ellipse cx={450} cy={400} rx={210} ry={26} fill="#17171A" opacity={0.12} />
+        <rect x={270} y={330} width={360} height={70} rx={18} fill="#7A4A25" stroke={M.ink} strokeWidth={8} />
+        <circle cx={450} cy={330} r={30 + ring * 120} fill="none" stroke={M.hero} strokeWidth={8} opacity={t >= d.at ? 1 - ring : 0} />
+        <g transform={`translate(560 300) rotate(${ang})`}>
+          <rect x={-240} y={-9} width={250} height={18} rx={9} fill="#B07A45" stroke={M.ink} strokeWidth={6} />
+          <rect x={-310} y={-46} width={110} height={92} rx={18} fill="#7A4A25" stroke={M.ink} strokeWidth={8} />
+        </g>
+        <g transform={`translate(450 150) rotate(-8) scale(${st})`} opacity={st}>
+          <rect x={-250} y={-62} width={500} height={124} rx={22} fill="none" stroke={M.hero} strokeWidth={10} />
+          <text textAnchor="middle" dominantBaseline="central" fontFamily={M.font} fontWeight={900} fontSize={84} letterSpacing="0.06em" fill={M.hero}>{d.stamp}</text>
+        </g>
+      </svg>
+    </Area>
+  );
+};
+
+/** Torcida: grade de bolinhas pulando; em `at` entra um ✕ grande e o texto. */
+const Crowd: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { at: number; text: string };
+  const x = pop(d.at, M.spring.stamp);
+  const cols = 9, rows = 4;
+  return (
+    <Area>
+      <div style={{ position: "relative", width: 900, height: 440 }}>
+        {Array.from({ length: cols * rows }, (_, i) => {
+          const c = i % cols, r = Math.floor(i / cols);
+          const p = pop(scene.from + 0.03 * i, M.spring.snap);
+          const jump = Math.abs(Math.sin((t - scene.from) * 5 + i * 0.7)) * 20;
+          return (
+            <svg key={i} width={84} height={84} viewBox="-50 -50 100 100" style={{ position: "absolute", left: c * 100, top: r * 108 + 10 - jump, opacity: p * (1 - 0.55 * x), transform: `scale(${p})` }}>
+              <circle r={44} fill="#fff" stroke={M.ink} strokeWidth={6} />
+              <circle cx={-14} cy={-6} r={6} fill={M.ink} /><circle cx={14} cy={-6} r={6} fill={M.ink} />
+              <path d="M-14 14 Q0 28 14 14" fill="none" stroke={M.ink} strokeWidth={5} strokeLinecap="round" />
+            </svg>
+          );
+        })}
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, opacity: x, transform: `scale(${interpolate(x, [0, 1], [1.6, 1])})` }}>
+          <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 130, lineHeight: 1, letterSpacing: "-0.03em", color: M.hero, background: "#EBEBE6dd", borderRadius: 28, padding: "6px 34px 12px" }}>{d.text}</div>
+        </div>
+      </div>
+    </Area>
+  );
+};
+
+/** Janela de notícia/aplicativo com título digitando, selo e sublinhado desenhado à mão. */
+const News: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { t, pop } = useClock(scene);
+  const d = scene.data as { source?: string; title: string; typeAt?: number; sticker?: { text: string; at: number }; markAt?: number; tag?: string };
+  const start = d.typeAt ?? scene.from + 0.3;
+  const n = Math.max(0, Math.floor((t - start) * 34));
+  const shown = d.title.slice(0, n);
+  const e = pop(scene.from + 0.05, M.spring.snap);
+  const sp = d.sticker ? pop(d.sticker.at, M.spring.stamp) : 0;
+  const mark = d.markAt !== undefined ? interpolate(t, [d.markAt, d.markAt + 0.4], [0, 1], { easing: M.out, ...clamp }) : 0;
+  return (
+    <Area>
+      <div style={{ position: "relative", width: 900, background: M.card, borderRadius: 36, boxShadow: M.shadow, overflow: "visible", opacity: e, transform: `translateY(${interpolate(e, [0, 1], [40, 0])}px)` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 28px", borderBottom: "2px solid #ECECE7" }}>
+          {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => <div key={c} style={{ width: 18, height: 18, borderRadius: 99, background: c }} />)}
+          <div style={{ marginLeft: 18, fontFamily: M.font, fontWeight: 700, fontSize: 22, letterSpacing: "0.18em", color: M.dim }}>{d.source ?? "NOTÍCIA"}</div>
+        </div>
+        <div style={{ position: "relative", padding: "34px 40px 40px", minHeight: 250 }}>
+          {d.tag ? <div style={{ display: "inline-block", fontFamily: M.font, fontWeight: 800, fontSize: 24, letterSpacing: "0.16em", color: "#fff", background: M.hero, borderRadius: 999, padding: "6px 20px", marginBottom: 18 }}>{d.tag}</div> : null}
+          <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 84, lineHeight: 1.02, letterSpacing: "-0.03em", color: M.ink, position: "relative" }}>
+            {shown}
+            <span style={{ opacity: Math.floor(t * 3) % 2 ? 0 : 1, color: M.hero }}>|</span>
+            {d.markAt !== undefined ? (
+              <svg width="100%" height={24} viewBox="0 0 400 24" preserveAspectRatio="none" style={{ position: "absolute", left: 0, bottom: -26 }}>
+                <path d="M2 14 Q40 2 80 14 T160 14 T240 14 T320 14 T398 12" fill="none" stroke={M.hero} strokeWidth={5} strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - mark} />
+              </svg>
+            ) : null}
+          </div>
+        </div>
+        {d.sticker ? (
+          <div style={{ position: "absolute", right: -26, top: -36, background: M.hero, color: "#fff", fontFamily: M.font, fontWeight: 900, fontSize: 80, padding: "4px 30px 10px", borderRadius: 28, boxShadow: M.shadow, transform: `scale(${sp}) rotate(${interpolate(sp, [0, 1], [-14, 6])}deg)` }}>{d.sticker.text}</div>
+        ) : null}
+      </div>
+    </Area>
+  );
+};
+
+/** Passos numerados (CTA): cada item entra em `at`. */
+const Steps: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { pop } = useClock(scene);
+  const items: { text: string; at: number; sub?: string }[] = scene.data?.items ?? [];
+  return (
+    <Area>
+      <div style={{ width: 900, background: M.card, borderRadius: 44, boxShadow: M.shadow, padding: "16px 40px" }}>
+        {items.map((it, i) => {
+          const p = pop(it.at, M.spring.snap);
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 30, height: 150, borderTop: i ? "2px solid #E4E4DF" : "none", opacity: p, transform: `translateX(${interpolate(p, [0, 1], [-50, 0])}px)` }}>
+              <div style={{ width: 84, height: 84, borderRadius: 99, background: M.hero, color: "#fff", fontFamily: M.font, fontWeight: 900, fontSize: 52, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
+              <div>
+                <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 62, letterSpacing: "-0.02em", color: M.ink, lineHeight: 1 }}>{it.text}</div>
+                {it.sub ? <div style={{ fontFamily: M.font, fontWeight: 600, fontSize: 32, color: M.dim, marginTop: 8 }}>{it.sub}</div> : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Area>
+  );
+};
+
+const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics, kick: Kick, debate: Debate, mascot: Mascot, gavel: Gavel, crowd: Crowd, news: News, steps: Steps } as const;
 
 export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
   const C = table[scene.kind];

@@ -28,10 +28,10 @@ const phrases = (words: Word[], maxWords = 4, maxChars = 26, gapMs = 360): Phras
 };
 
 /** Legenda do modelo: caixa preta de cantos redondos, texto branco, palavra-chave em laranja. */
-export const Captions: React.FC<{ words: Word[]; highlight: string[]; top: number }> = ({ words, highlight, top }) => {
+export const Captions: React.FC<{ words: Word[]; highlight: string[]; top: number; maxWords?: number; upper?: boolean }> = ({ words, highlight, top, maxWords = 4, upper = false }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
-  const list = useMemo(() => phrases(words), [words]);
+  const list = useMemo(() => phrases(words, maxWords, maxWords < 4 ? 22 : 26), [words, maxWords]);
   const hl = useMemo(() => new Set(highlight.map(norm)), [highlight]);
   const t = (frame / fps) * 1000;
 
@@ -72,7 +72,7 @@ export const Captions: React.FC<{ words: Word[]; highlight: string[]; top: numbe
         {shown.map((w, i) => (
           <span key={i} style={{ color: hl.has(norm(w.text)) ? M.hero : "#fff" }}>
             {i ? " " : ""}
-            {w.text.replace(/[.,;:!?…]+$/, "")}
+            {upper ? w.text.replace(/[.,;:!?…]+$/, "").toUpperCase() : w.text.replace(/[.,;:!?…]+$/, "")}
             {/[?!]$/.test(w.text) ? w.text.slice(-1) : ""}
           </span>
         ))}

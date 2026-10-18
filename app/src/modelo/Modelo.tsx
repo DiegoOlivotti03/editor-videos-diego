@@ -67,7 +67,7 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
        </div>
       </div>
 
-      <Captions words={props.captions} highlight={props.highlight} top={cur.cap} />
+      <Captions words={props.captions} highlight={props.highlight} top={cur.cap} maxWords={props.captionMax} upper={props.captionUpper} />
 
       {(props.flashes ?? []).map((t, i) => {
         const f = Math.round(t * fps);

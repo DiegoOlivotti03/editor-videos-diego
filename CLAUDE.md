@@ -17,3 +17,9 @@ Escolha dos painéis: partir do que a pessoa fala, um painel novo a cada 1,5 a 4
 - Quando a fala citar uma ação ou situação, ilustrar com boneco de palito animado: `kick` (jogar bola), `debate` (um acha certo, outro errado). Criar painéis novos do mesmo jeito (`Stick` em `Scenes.tsx`) para outras falas (correr, pagar conta, vender, reunião).
 - Flash com som de câmera (`flashes`) em 4 a 6 viradas de impacto, não em todas.
 - Imagem padronizada: camisa preta e fundo colorido via `scripts/padronizar.py` (precisa de `./setup.sh`).
+
+## Lições do vídeo de referência (Reel de IA/Arena, analisado com o Diego)
+- Painel = a coisa literal da fala (arena, página, e-mail riscado, janela de chat), não metáfora. Mascote recorrente (a Bolinha, `mascot`). Anotações desenhadas, selos, janelas com 3 pontinhos, cartões empilhando, cronômetro/HUD.
+- Corte a cada ~2 s, alinhado ao início da frase. Legenda de 2 a 3 palavras em caixa alta (`captionMax: 3`, `captionUpper: true`), sem cor de destaque. Áudio da referência em -14 LUFS (o nosso sai em -16).
+- Gancho nos 4 primeiros segundos com promessa; CTA com uma palavra e passos numerados (`steps`), sem inventar passo que a pessoa não falou.
+- O link da referência baixa com `yt-dlp` (`pip install yt-dlp`), mesmo o Instagram.

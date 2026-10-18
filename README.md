@@ -32,6 +32,7 @@ Opções: `--cor1/--cor2` (degradê do fundo, padrão laranja da marca), `--cami
 | `highlight` | palavras da legenda que ficam laranja |
 | `layout` | `[{ "from": seg, "mode": "split" \| "speaker" \| "panel" }]`; o primeiro vale desde 0 |
 | `scenes` | painéis animados (abaixo) |
+| `captionMax`, `captionUpper` | legenda curta (ex.: 3 e `true`), como no vídeo de referência |
 | `flashes` | instantes (s) com flash branco e som de câmera (`sfx/flash.wav`) |
 | `zoomCuts` | instantes do zoom alternado (vêm dos cortes de silêncio) |
 
@@ -54,6 +55,11 @@ Opções: `--cor1/--cor2` (degradê do fundo, padrão laranja da marca), `--cami
 - `pics`: `data.items: [{src, at, label?, frame?}], badge?: {text, at}, height?` (imagens reais de `app/public/imagens/`: escudo, bandeira, foto)
 - `kick`: dois bonecos passando a bola (`data.period?`)
 - `debate`: dois bonecos, um aprova e outro reprova (`data.at, at2`)
+- `mascot`: a Bolinha (mascote). `data.mood` (olhando, empresario, estudando, quebrando, feliz), `caption: [linhas]`, `accent`, `at`
+- `gavel`: martelo de leilão, `data.at, stamp`
+- `crowd`: torcida de bolinhas, `data.at, text`
+- `news`: janela com título digitando, `data.title, source, tag, sticker?, markAt?`
+- `steps`: passos numerados (CTA), `data.items: [{text, sub?, at}]`
 - `chat`: `data.comment, at, reply, replyAt` (comentário que recebe a resposta no direct)
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.
