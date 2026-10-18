@@ -19,7 +19,7 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 |---|---|
 | `speaker` | `<nome>/falas.mp4` (gerado) |
 | `splitRatio` | altura do painel na tela dividida (0.47; o modelo usa 0.51, mas close de rosto pede menos) |
-| `faceY` | enquadramento vertical da pessoa, 0 a 100 (40 funciona em selfie de perto) |
+| `faceY` | enquadramento vertical da pessoa, 0 a 100 (62 com splitRatio 0.44 mostra o queixo inteiro em selfie de perto) |
 | `highlight` | palavras da legenda que ficam laranja |
 | `layout` | `[{ "from": seg, "mode": "split" \| "speaker" \| "panel" }]`; o primeiro vale desde 0 |
 | `scenes` | painéis animados (abaixo) |
@@ -41,6 +41,7 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 - `counter`: `data.from, to, at, caption?, prefix?, suffix?` (número que conta)
 - `versus`: `data.left, right, at, symbol?` (dois cartões com "=" ou "VS" no meio)
 - `swap`: `data.from, to, at` (palavra riscada e substituída)
+- `pics`: `data.items: [{src, at, label?, frame?}], badge?: {text, at}, height?` (imagens reais de `app/public/imagens/`: escudo, bandeira, foto)
 - `chat`: `data.comment, at, reply, replyAt` (comentário que recebe a resposta no direct)
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.

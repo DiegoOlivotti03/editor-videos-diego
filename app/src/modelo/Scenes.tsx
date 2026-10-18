@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { M } from "./style";
 import type { Scene } from "./types";
 
@@ -415,7 +415,33 @@ const Chat: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 };
 
-const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat } as const;
+/** Imagens reais (escudo, bandeira, foto) lado a lado; cada uma entra em `at`. `frame: true` põe cantos arredondados e sombra (fotos, bandeiras). */
+const Pics: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { pop, t } = useClock(scene);
+  const items: { src: string; at: number; label?: string; frame?: boolean }[] = scene.data?.items ?? [];
+  const badge = scene.data?.badge as { text: string; at: number } | undefined;
+  const h: number = scene.data?.height ?? (items.length > 1 ? 280 : 440);
+  const drift = 1 + 0.05 * Math.min(1, (t - scene.from) / Math.max(0.1, scene.to - scene.from));
+  const bp = badge ? pop(badge.at, M.spring.stamp) : 0;
+  return (
+    <Area style={{ gap: 40, alignItems: "center" }}>
+      {items.map((it, i) => {
+        const p = pop(it.at, M.spring.snap);
+        return (
+          <div key={i} style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 22, opacity: p, transform: `translateY(${interpolate(p, [0, 1], [40, 0])}px) scale(${interpolate(p, [0, 1], [0.92, 1]) * drift})` }}>
+            <Img src={staticFile(it.src)} style={{ height: h, width: "auto", maxWidth: 900 / Math.max(1, items.length) - 20, objectFit: "contain", ...(it.frame ? { borderRadius: 28, boxShadow: M.shadow } : { filter: "drop-shadow(0 14px 30px rgba(20,20,20,0.18))" }) }} />
+            {it.label ? <div style={{ fontFamily: M.font, fontWeight: 900, fontSize: 44, letterSpacing: "0.04em", color: M.ink }}>{it.label}</div> : null}
+            {i === 0 && badge ? (
+              <div style={{ position: "absolute", right: -70, top: 10, background: M.hero, color: "#fff", fontFamily: M.font, fontWeight: 900, fontSize: 96, letterSpacing: "-0.03em", padding: "6px 34px 10px", borderRadius: 34, boxShadow: M.shadow, transform: `scale(${bp}) rotate(${interpolate(bp, [0, 1], [-10, -4])}deg)` }}>{badge.text}</div>
+            ) : null}
+          </div>
+        );
+      })}
+    </Area>
+  );
+};
+
+const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, pie: Pie, timeline: Timeline, scale: Scale, checklist: Checklist, counter: Counter, versus: Versus, swap: Swap, chat: Chat, pics: Pics } as const;
 
 export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
   const C = table[scene.kind];
