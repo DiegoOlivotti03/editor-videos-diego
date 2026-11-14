@@ -15,6 +15,9 @@ export type Scene = {
 /** Título-tese em caixa colorida na emenda (ex.: "DE GRÁTIS PRA US$ 25 MI POR ANO"). Tempos em segundos. */
 export type Hook = { text: string; highlight?: string[]; from?: number; to?: number };
 
+/** Efeito sonoro manual em `at` (s). Os automáticos (riser no título, whoosh/click nas trocas) já vêm ligados com `sfx`. */
+export type Sound = { at: number; name: "riser" | "whoosh" | "click" | "bell"; volume?: number };
+
 export type LayoutMode = "split" | "speaker" | "panel";
 
 /** Troca de layout em `from` (s): tela dividida, só a pessoa ou só o painel. O primeiro vale desde 0. */
@@ -37,4 +40,6 @@ export type ModeloProps = {
   zoomCuts: number[];
   zoomLevel: number;
   sfx: boolean;
+  /** efeitos extras, ex.: bell como notificação */
+  sounds?: Sound[];
 };

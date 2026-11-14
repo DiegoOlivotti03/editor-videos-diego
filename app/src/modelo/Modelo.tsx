@@ -4,7 +4,23 @@ import { Captions } from "./Captions";
 import { HOOK_DROP, HookTitle, hookLayout, hookVisibility } from "./Hook";
 import { SceneView } from "./Scenes";
 import { M } from "./style";
-import type { LayoutMode, ModeloProps } from "./types";
+import type { LayoutMode, ModeloProps, Sound } from "./types";
+
+/** Biblioteca de efeitos (public/sfx). `len` = quanto toca (s), `vol` = volume base, baixo para ficar sob a voz. */
+const SFX = {
+  riser: { file: "sfx/riser.mp3", len: 3.4, vol: 0.4 },
+  whoosh: { file: "sfx/whoosh2.mp3", len: 0.58, vol: 0.12 },
+  click: { file: "sfx/click.mp3", len: 0.5, vol: 0.22 },
+  bell: { file: "sfx/bell.mp3", len: 1.8, vol: 0.1 },
+} as const;
+
+/** Riser no começo do título (suspense do gancho); click quando entra um card de dado; whoosh nas demais trocas. */
+const sfxEvents = (props: ModeloProps): Sound[] => {
+  const ev: Sound[] = [];
+  if (props.hook) ev.push({ at: props.hook.from ?? 0, name: "riser" });
+  props.scenes.slice(1).forEach((s) => ev.push({ at: Math.max(0, s.from - 0.07), name: s.kind === "dado" ? "click" : "whoosh" }));
+  return [...ev, ...(props.sounds ?? [])];
+};
 
 /** Tela dividida fixa: painel animado em cima (~51%), pessoa embaixo, emenda com degradê. */
 export const Modelo: React.FC<ModeloProps> = (props) => {
@@ -79,9 +95,15 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
       <Captions words={props.captions} highlight={props.highlight} top={capTop} />
 
       {props.sfx
-        ? props.scenes.slice(1).map((s, i) => (
-            <Sequence key={`s${i}`} from={Math.max(0, Math.round(s.from * fps) - 2)} durationInFrames={40}>
-              <Audio src={staticFile("sfx/whoosh.wav")} volume={0.14} />
+        ? sfxEvents(props).map((e, i) => (
+            <Sequence key={`s${i}`} from={Math.max(0, Math.round(e.at * fps))} durationInFrames={Math.round(SFX[e.name].len * fps)}>
+              <Audio
+                src={staticFile(SFX[e.name].file)}
+                volume={(f) => {
+                  const fade = interpolate(f, [SFX[e.name].len * fps - 12, SFX[e.name].len * fps], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                  return (e.volume ?? SFX[e.name].vol) * fade;
+                }}
+              />
             </Sequence>
           ))
         : null}

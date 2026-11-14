@@ -24,6 +24,8 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 | `layout` | `[{ "from": seg, "mode": "split" \| "speaker" \| "panel" }]`; o primeiro vale desde 0 |
 | `hook` | título-tese em caixa colorida na emenda: `{ text, highlight?: [palavras em escuro], from?: 0, to?: 4.5 }`. Use número ou contraste ("DE GRÁTIS PRA US$ 25 MI POR ANO"). A legenda desce enquanto ele aparece |
 | `scenes` | painéis animados (abaixo) |
+| `sfx` | `true` liga os efeitos automáticos: **riser** no começo do título (suspense do gancho), **click** quando entra um card `dado`, **whoosh** nas outras trocas de painel |
+| `sounds` | efeitos extras: `[{ "at": seg, "name": "bell" \| "click" \| "whoosh" \| "riser", "volume"?: 0 a 1 }]`. Use o **bell** como notificação (ex.: ao citar um dado novo) |
 | `zoomCuts` | instantes do zoom alternado (vêm dos cortes de silêncio) |
 
 ### Painéis (`scenes`): `{ kind, from, to, label, data }`, tempos em segundos do vídeo já cortado
