@@ -22,6 +22,7 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 | `faceY` | enquadramento vertical da pessoa, 0 a 100 (40 funciona em selfie de perto) |
 | `highlight` | palavras da legenda que ficam laranja |
 | `layout` | `[{ "from": seg, "mode": "split" \| "speaker" \| "panel" }]`; o primeiro vale desde 0 |
+| `hook` | título-tese em caixa colorida na emenda: `{ text, highlight?: [palavras em escuro], from?: 0, to?: 4.5 }`. Use número ou contraste ("DE GRÁTIS PRA US$ 25 MI POR ANO"). A legenda desce enquanto ele aparece |
 | `scenes` | painéis animados (abaixo) |
 | `zoomCuts` | instantes do zoom alternado (vêm dos cortes de silêncio) |
 
@@ -34,6 +35,7 @@ npm --prefix app run studio                  # (opcional) pré-visualizar no nav
 - `bars`: `data.at, data.targets?` (barras que caem)
 - `line`: gráfico descendo
 - `question`: `data.items: [{value, at}], data.qAt`
+- `dado`: card escuro de prova: `data.kicker` (rótulo "— TEXTO"), `data.value` (numeral grande em serifa itálica), `data.text`, `data.source` (vira "Fonte: …"), `data.at`. Sempre com fonte real; se for ilustração, escreva isso na fonte
 
 Exemplo completo: `exemplos/modelo.exemplo.json`. Para criar um painel novo, adicione o componente em `app/src/modelo/Scenes.tsx` e o `kind` em `types.ts`.
 

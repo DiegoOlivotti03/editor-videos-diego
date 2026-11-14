@@ -1,6 +1,6 @@
 import type { Word } from "../types";
 
-export type SceneKind = "bigword" | "duo" | "calendar" | "boleto" | "bars" | "line" | "question";
+export type SceneKind = "bigword" | "duo" | "calendar" | "boleto" | "bars" | "line" | "question" | "dado";
 
 /** Um painel animado da metade de cima. Tempos em segundos na linha do tempo do vídeo cortado. */
 export type Scene = {
@@ -11,6 +11,9 @@ export type Scene = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: Record<string, any>;
 };
+
+/** Título-tese em caixa colorida na emenda (ex.: "DE GRÁTIS PRA US$ 25 MI POR ANO"). Tempos em segundos. */
+export type Hook = { text: string; highlight?: string[]; from?: number; to?: number };
 
 export type LayoutMode = "split" | "speaker" | "panel";
 
@@ -30,6 +33,7 @@ export type ModeloProps = {
   highlight: string[];
   scenes: Scene[];
   layout?: LayoutChange[];
+  hook?: Hook;
   zoomCuts: number[];
   zoomLevel: number;
   sfx: boolean;

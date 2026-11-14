@@ -36,6 +36,12 @@ o ambiente não cria repositórios no GitHub (o Diego cria e anexa).
   empresário, depois pacote/workshop/implantação), FRANQUIA (checklist de expansão, depois conversa comercial).
 - Automação comentário-para-DM por ferramenta que use a API oficial da Meta (ex.: ManyChat); confirmar regras atuais da Meta e LGPD no DM.
 
+## Referência estudada (engenharia reversa de outro criador de negócios/esporte)
+Formato que rende nele: tela dividida, título-tese com número em caixa colorida na emenda nos primeiros segundos, prova em cards
+escuros com fonte citada, rosto em tela cheia nos pivôs, legenda branca sem caixa, CTA na legenda do post ("me segue pra mais cases",
+"manda pra quem…"). O que rende é o eixo (case de negócio com número), não só o visual. Não copiar roteiro, dados nem trechos de TV.
+Já feito: `hook` (título na emenda) e painel `dado`. Falta: card de manchete, lower-third, legenda sem caixa, tema escuro.
+
 ## Próximos passos
 - Cartão de CTA no editor: fecha o vídeo só com o rosto e a palavra grande na tela ("COMENTA TÊNIS").
 - Texto do DM de cada oferta.

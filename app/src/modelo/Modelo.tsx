@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, OffthreadVideo, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Captions } from "./Captions";
+import { HOOK_DROP, HookTitle, hookLayout, hookVisibility } from "./Hook";
 import { SceneView } from "./Scenes";
 import { M } from "./style";
 import type { LayoutMode, ModeloProps } from "./types";
@@ -47,6 +48,12 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
   // Respiro: aproximação muito lenta ao longo do vídeo, para a imagem nunca ficar parada.
   const drift = 1 + 0.025 * (frame / (props.durationSeconds * fps));
 
+  // Título na emenda: enquanto aparece, a legenda desce para não ficar embaixo dele.
+  const hookVis = hookVisibility(props.hook, frame / fps);
+  const hookY = splitFull + HOOK_DROP;
+  const hookBottom = props.hook ? hookY + hookLayout(props.hook.text).height / 2 + 16 : 0;
+  const capTop = cur.cap + hookVis * Math.max(0, hookBottom - cur.cap);
+
   return (
     <AbsoluteFill style={{ background: M.bg }}>
       <div style={{ position: "absolute", left: 0, top: splitY, width, height: speakerH, overflow: "hidden", background: "#000" }}>
@@ -67,7 +74,9 @@ export const Modelo: React.FC<ModeloProps> = (props) => {
        </div>
       </div>
 
-      <Captions words={props.captions} highlight={props.highlight} top={cur.cap} />
+      {props.hook ? <HookTitle hook={props.hook} seamY={hookY} /> : null}
+
+      <Captions words={props.captions} highlight={props.highlight} top={capTop} />
 
       {props.sfx
         ? props.scenes.slice(1).map((s, i) => (

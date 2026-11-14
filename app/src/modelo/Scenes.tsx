@@ -236,7 +236,37 @@ const Question: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 };
 
-const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question } as const;
+/** Card escuro de dado: rótulo "— TEXTO", numeral grande em serifa itálica, frase de apoio e fonte citada. */
+const Dado: React.FC<{ scene: Scene }> = ({ scene }) => {
+  const { pop } = useClock(scene);
+  const d = scene.data as { kicker?: string; value: string; text?: string; source?: string; at?: number };
+  const k = pop(scene.from + 0.1), v = pop(d.at ?? scene.from + 0.3, M.spring.stamp), tx = pop((d.at ?? scene.from + 0.3) + 0.35), src = pop((d.at ?? scene.from + 0.3) + 0.6);
+  const size = Math.round(Math.min(260, 760 / (Math.max(1, d.value.length) * 0.52)));
+  const serif = '"Liberation Serif", "Times New Roman", Georgia, serif';
+  return (
+    <Area>
+      <div style={{ position: "relative", width: 900, minHeight: 470, borderRadius: 44, overflow: "hidden", background: "#141416", boxShadow: M.shadow, padding: "40px 54px 34px", display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 70% 60% at 85% 0%, ${M.hero}55, transparent 70%)` }} />
+        {d.kicker ? (
+          <div style={{ position: "relative", fontFamily: M.font, fontWeight: 800, fontSize: 28, letterSpacing: "0.2em", color: M.hero, textTransform: "uppercase", opacity: k, transform: `translateX(${interpolate(k, [0, 1], [-20, 0])}px)` }}>
+            — {d.kicker}
+          </div>
+        ) : null}
+        <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center", fontFamily: serif, fontStyle: "italic", fontWeight: 700, fontSize: size, lineHeight: 1, letterSpacing: "-0.02em", color: M.hero, opacity: v, transform: `scale(${interpolate(v, [0, 1], [1.25, 1])})`, transformOrigin: "left center" }}>
+          {d.value}
+        </div>
+        {d.text ? (
+          <div style={{ position: "relative", fontFamily: M.font, fontWeight: 700, fontSize: 42, lineHeight: 1.12, color: "#fff", opacity: tx, transform: `translateY(${interpolate(tx, [0, 1], [18, 0])}px)` }}>{d.text}</div>
+        ) : null}
+        {d.source ? (
+          <div style={{ position: "relative", marginTop: 22, fontFamily: M.font, fontWeight: 500, fontSize: 24, color: "#8D8D88", opacity: src }}>Fonte: {d.source}</div>
+        ) : null}
+      </div>
+    </Area>
+  );
+};
+
+const table = { bigword: BigWord, duo: Duo, calendar: Calendar, boleto: Boleto, bars: Bars, line: Line, question: Question, dado: Dado } as const;
 
 export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
   const C = table[scene.kind];
