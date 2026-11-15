@@ -89,14 +89,12 @@ for u in units:
                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "320k", dec + ".tmp.mp4"])
                 os.rename(dec + ".tmp.mp4", dec)
             base_ss = 0.0
-        fc, labs = [], ""
-        for i, (a, b) in enumerate(iv):
-            zoom = 1.0 if i % 2 == 0 else 1.07
-            z = "" if zoom == 1.0 else f",crop=iw/{zoom}:ih/{zoom},scale=1920:1080:flags=lanczos"
-            fc.append(f"[0:v]trim={base_ss + a:.3f}:{base_ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z},setsar=1[v{i}]")
-            fc.append(f"[0:a]atrim={base_ss + a:.3f}:{base_ss + b:.3f},asetpts=PTS-STARTPTS,aresample={SR}[a{i}]")
-            labs += f"[v{i}][a{i}]"
-        fc.append(f"{labs}concat=n={len(iv)}:v=1:a=1[v0][a0]")
+        # seleção por tempo em um único fluxo (sem acumular quadros na memória como trim+concat com dezenas de cortes)
+        sel = "+".join(f"between(t,{base_ss + a:.3f},{base_ss + b:.3f})" for a, b in iv)
+        odd = "+".join(f"between(t,{base_ss + a:.3f},{base_ss + b:.3f})" for i, (a, b) in enumerate(iv) if i % 2 == 1)
+        zoom = (f",scale=w='1920*(1+0.07*({odd}))':h='1080*(1+0.07*({odd}))':eval=frame:flags=lanczos,crop=1920:1080" if odd else "")
+        fc = [f"[0:v]fps=30,{vf_fit(w, h)}{zoom},select='{sel}',setpts=N/(30*TB),setsar=1[v0]",
+              f"[0:a]aresample={SR},aselect='{sel}',asetpts=N/({SR}*TB)[a0]"]
         inputs, last = ["-i", dec], "v0"
         for k, b in enumerate(u.get("broll", [])):  # imagens de jogo por cima da fala (o áudio da fala segue)
             bs = source_for(b["src"])
