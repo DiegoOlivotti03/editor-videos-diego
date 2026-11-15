@@ -62,7 +62,10 @@ def source_for(name):
 for u in units:
     out = os.path.join(WORK, f"{u['id']}.mp4")
     if os.path.exists(out):
-        rendered.append(out); continue
+        ok = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True).returncode == 0
+        if ok:
+            rendered.append(out); continue
+        os.remove(out)  # sobrou de uma execução interrompida
     if u.get("intro"):
         src = os.path.join(APP, u["intro"])
         run(["ffmpeg", "-v", "error", "-y", "-i", src, "-f", "lavfi", "-i", f"anullsrc=r={SR}:cl=stereo", "-shortest",
