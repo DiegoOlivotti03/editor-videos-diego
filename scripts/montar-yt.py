@@ -77,15 +77,24 @@ for u in units:
     to = ss + u["dur"] if "dur" in u else u["to"]
     if u.get("talk"):
         iv = keep_intervals(src, ss, to)
+        base_ss, dec = ss, src
+        if src.endswith(".MOV"):
+            # 4K de uma vez só pesa na memória com dezenas de cortes: converte antes para um intermediário 1080p quase sem perda
+            dec = os.path.join(WORK, f"{u['id']}.mezz.mp4")
+            if not os.path.exists(dec):
+                run(["ffmpeg", "-v", "error", "-y", "-ss", str(ss), "-to", str(to), "-i", src, "-vf", "fps=30,scale=1920:1080:flags=lanczos",
+                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "320k", dec + ".tmp.mp4"])
+                os.rename(dec + ".tmp.mp4", dec)
+            base_ss = 0.0
         fc, labs = [], ""
         for i, (a, b) in enumerate(iv):
             zoom = 1.0 if i % 2 == 0 else 1.07
             z = "" if zoom == 1.0 else f",crop=iw/{zoom}:ih/{zoom},scale=1920:1080:flags=lanczos"
-            fc.append(f"[0:v]trim={ss + a:.3f}:{ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z},setsar=1[v{i}]")
-            fc.append(f"[0:a]atrim={ss + a:.3f}:{ss + b:.3f},asetpts=PTS-STARTPTS,aresample={SR}[a{i}]")
+            fc.append(f"[0:v]trim={base_ss + a:.3f}:{base_ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z},setsar=1[v{i}]")
+            fc.append(f"[0:a]atrim={base_ss + a:.3f}:{base_ss + b:.3f},asetpts=PTS-STARTPTS,aresample={SR}[a{i}]")
             labs += f"[v{i}][a{i}]"
         fc.append(f"{labs}concat=n={len(iv)}:v=1:a=1[v0][a0]")
-        inputs, last = ["-i", src], "v0"
+        inputs, last = ["-i", dec], "v0"
         for k, b in enumerate(u.get("broll", [])):  # imagens de jogo por cima da fala (o áudio da fala segue)
             bs = source_for(b["src"])
             inputs += ["-ss", str(b["ss"]), "-t", str(b["dur"]), "-i", bs]
