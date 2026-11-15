@@ -85,7 +85,7 @@ for u in units:
     w, h = [int(x) for x in probe(src, "stream=width,height").split("\n")[0].split(",")]
     loud = u.get("loud", -16 if u.get("talk") else -26)
     ss = u.get("ss", 0)
-    to = u.get("to", ss + u["dur"]) if "dur" not in u else ss + u["dur"]
+    to = ss + u["dur"] if "dur" in u else u["to"]
     if u.get("talk"):
         iv = keep_intervals(src, ss, to)
         fc, labs = [], ""
