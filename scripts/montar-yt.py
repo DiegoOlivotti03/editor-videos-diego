@@ -92,7 +92,7 @@ for u in units:
         for i, (a, b) in enumerate(iv):
             zoom = 1.0 if i % 2 == 0 else 1.07
             z = "" if zoom == 1.0 else f",crop=iw/{zoom}:ih/{zoom},scale=1920:1080"
-            fc.append(f"[0:v]trim={ss + a:.3f}:{ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z}[v{i}]")
+            fc.append(f"[0:v]trim={ss + a:.3f}:{ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z},setsar=1[v{i}]")
             fc.append(f"[0:a]atrim={ss + a:.3f}:{ss + b:.3f},asetpts=PTS-STARTPTS,aresample={SR}[a{i}]")
             labs += f"[v{i}][a{i}]"
         fc.append(f"{labs}concat=n={len(iv)}:v=1:a=1[v][a0]")
