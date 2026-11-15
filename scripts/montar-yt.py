@@ -180,7 +180,7 @@ for i in range(len(tags)):
 out = os.path.join(APP, "out", plan.get("out", "utr-youtube.mp4"))
 os.makedirs(os.path.dirname(out), exist_ok=True)
 cmd += (["-filter_complex", ";".join(chain), "-map", f"[{last}]"] if chain else ["-map", "0:v"])
-cmd += ["-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", out]
+cmd += ["-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", out]
 run(cmd)
 print("PRONTO", out, f"{total:.1f}s")
 json.dump({"starts": [round(float(x), 2) for x in starts], "ids": [u["id"] for u in units]}, open(os.path.join(WORK, "timeline.json"), "w"))
