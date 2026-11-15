@@ -54,3 +54,54 @@ export const YtTag: React.FC<YtTagProps> = ({ label, sub }) => {
     </AbsoluteFill>
   );
 };
+
+export type YtPlacarProps = { title: string; rows: { game: string; opp: string; score: string; at: number }[]; length: number };
+
+/** Placar do dia (transparente, canto superior direito): cada jogo entra no instante `at` (s). */
+export const YtPlacar: React.FC<YtPlacarProps> = ({ title, rows, length }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const e = spring({ frame, fps, config: M.spring.snap });
+  const out = interpolate(t, [length - 0.4, length], [1, 0], clamp);
+  return (
+    <AbsoluteFill style={{ fontFamily: M.font, opacity: out }}>
+      <div style={{ position: "absolute", right: 0, top: 0, width: 760, background: "rgba(14,14,16,0.9)", borderLeft: `14px solid ${M.hero}`, padding: "26px 34px 28px", boxShadow: "0 14px 40px rgba(0,0,0,0.4)", transform: `translateX(${interpolate(e, [0, 1], [120, 0])}px)`, opacity: e }}>
+        <div style={{ fontWeight: 800, fontSize: 26, letterSpacing: "0.26em", color: M.hero, textTransform: "uppercase", marginBottom: 14 }}>— {title}</div>
+        {rows.map((r, i) => {
+          const p = spring({ frame: frame - Math.round(r.at * fps), fps, config: M.spring.soft });
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 20, padding: "10px 0", borderTop: i ? "2px solid #2a2a2e" : "none", opacity: p, transform: `translateY(${interpolate(p, [0, 1], [18, 0])}px)` }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 38, color: "#fff", textTransform: "uppercase" }}>{r.game}</div>
+                <div style={{ fontWeight: 600, fontSize: 24, letterSpacing: "0.18em", color: "#8D8D88", textTransform: "uppercase" }}>{r.opp}</div>
+              </div>
+              <div style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 700, fontSize: 52, color: "#fff", whiteSpace: "nowrap" }}>{r.score}</div>
+            </div>
+          );
+        })}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+export type YtMetaProps = { kicker: string; value: string; text: string; length: number };
+
+/** Cartão "meta batida" (transparente, canto superior direito). */
+export const YtMeta: React.FC<YtMetaProps> = ({ kicker, value, text, length }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const e = spring({ frame, fps, config: M.spring.snap });
+  const v = spring({ frame: frame - Math.round(0.3 * fps), fps, config: M.spring.stamp });
+  const out = interpolate(t, [length - 0.4, length], [1, 0], clamp);
+  return (
+    <AbsoluteFill style={{ fontFamily: M.font, opacity: out }}>
+      <div style={{ position: "absolute", right: 0, top: 0, width: 760, background: "rgba(14,14,16,0.9)", borderLeft: `14px solid ${M.hero}`, padding: "26px 34px 30px", boxShadow: "0 14px 40px rgba(0,0,0,0.4)", transform: `translateX(${interpolate(e, [0, 1], [120, 0])}px)`, opacity: e }}>
+        <div style={{ fontWeight: 800, fontSize: 26, letterSpacing: "0.26em", color: M.hero, textTransform: "uppercase" }}>— {kicker}</div>
+        <div style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 700, fontSize: 150, lineHeight: 1.05, color: M.hero, opacity: v, transform: `scale(${interpolate(v, [0, 1], [1.3, 1])})`, transformOrigin: "left center" }}>{value}</div>
+        <div style={{ fontWeight: 700, fontSize: 36, color: "#fff" }}>{text}</div>
+      </div>
+    </AbsoluteFill>
+  );
+};

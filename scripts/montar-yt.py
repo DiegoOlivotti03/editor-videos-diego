@@ -13,6 +13,8 @@ Saída: out/<nome>.mp4 (feito com ffmpeg; as etiquetas vêm de sequências PNG d
 """
 import json, os, re, subprocess, sys
 import numpy as np
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from yt_util import keep_intervals, map_time
 
 SR = 48000
 plan_path = sys.argv[1]
@@ -37,30 +39,6 @@ def probe(path, entry):
     return run(["ffprobe", "-v", "error", "-show_entries", entry, "-of", "csv=p=0", path]).stdout.strip()
 
 
-def keep_intervals(src, ss, to):
-    """Trechos com fala: corta silêncios longos, deixando uma folga curta em volta."""
-    r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-ss", str(ss), "-to", str(to), "-i", src, "-vn",
-                        "-af", "silencedetect=noise=-34dB:d=0.55", "-f", "null", "-"], capture_output=True, text=True)
-    sil, cur = [], None
-    for line in r.stderr.splitlines():
-        m = re.search(r"silence_start: ([\d.]+)", line)
-        if m: cur = float(m.group(1))
-        m = re.search(r"silence_end: ([\d.]+)", line)
-        if m and cur is not None: sil.append((cur, float(m.group(1)))); cur = None
-    if cur is not None: sil.append((cur, to - ss))
-    keep, t = [], 0.0
-    for a, b in sil:
-        if a - t > 0.35: keep.append((max(0, t - 0.05), a + 0.12))
-        t = b
-    if (to - ss) - t > 0.35: keep.append((max(0, t - 0.05), to - ss))
-    # junta trechos que ficaram colados
-    out = []
-    for a, b in keep:
-        if out and a - out[-1][1] < 0.05: out[-1] = (out[-1][0], b)
-        else: out.append((a, b))
-    return out
-
-
 def vf_fit(w, h):
     if w >= h:
         return "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1"
@@ -71,6 +49,16 @@ def vf_fit(w, h):
 
 units = plan["units"]
 rendered = []
+UCRF, UPRESET = str(plan.get("unit_crf", 15)), plan.get("unit_preset", "fast")
+ENC = ["-c:v", "libx264", "-preset", UPRESET, "-crf", UCRF, "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k"]
+
+
+def source_for(name):
+    """Original 4K se existir (qualidade máxima); senão o proxy 1080p."""
+    o = os.path.join(ROOT, "orig", name + ".MOV")
+    return o if (plan.get("orig") and os.path.exists(o)) else os.path.join(ROOT, "p1080", name + ".mp4")
+
+
 for u in units:
     out = os.path.join(WORK, f"{u['id']}.mp4")
     if os.path.exists(out):
@@ -78,11 +66,12 @@ for u in units:
     if u.get("intro"):
         src = os.path.join(APP, u["intro"])
         run(["ffmpeg", "-v", "error", "-y", "-i", src, "-f", "lavfi", "-i", f"anullsrc=r={SR}:cl=stereo", "-shortest",
-             "-vf", "scale=1920:1080,fps=30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
-             "-c:a", "aac", "-b:a", "192k", out])
+             "-vf", "scale=1920:1080,fps=30", "-c:v", "libx264", "-preset", "fast", "-crf", "14", "-pix_fmt", "yuv420p",
+             "-c:a", "aac", "-b:a", "256k", out])
         rendered.append(out); continue
-    src = os.path.join(ROOT, "p1080", u["src"] + ".mp4")
-    w, h = [int(x) for x in probe(src, "stream=width,height").split("\n")[0].split(",")]
+    proxy = os.path.join(ROOT, "p1080", u["src"] + ".mp4")
+    src = source_for(u["src"])
+    w, h = [int(x) for x in probe(proxy, "stream=width,height").split("\n")[0].split(",")]
     loud = u.get("loud", -16 if u.get("talk") else -26)
     ss = u.get("ss", 0)
     to = ss + u["dur"] if "dur" in u else u["to"]
@@ -91,20 +80,36 @@ for u in units:
         fc, labs = [], ""
         for i, (a, b) in enumerate(iv):
             zoom = 1.0 if i % 2 == 0 else 1.07
-            z = "" if zoom == 1.0 else f",crop=iw/{zoom}:ih/{zoom},scale=1920:1080"
+            z = "" if zoom == 1.0 else f",crop=iw/{zoom}:ih/{zoom},scale=1920:1080:flags=lanczos"
             fc.append(f"[0:v]trim={ss + a:.3f}:{ss + b:.3f},setpts=PTS-STARTPTS,fps=30,{vf_fit(w, h)}{z},setsar=1[v{i}]")
             fc.append(f"[0:a]atrim={ss + a:.3f}:{ss + b:.3f},asetpts=PTS-STARTPTS,aresample={SR}[a{i}]")
             labs += f"[v{i}][a{i}]"
-        fc.append(f"{labs}concat=n={len(iv)}:v=1:a=1[v][a0]")
+        fc.append(f"{labs}concat=n={len(iv)}:v=1:a=1[v0][a0]")
+        inputs, last = ["-i", src], "v0"
+        for k, b in enumerate(u.get("broll", [])):  # imagens de jogo por cima da fala (o áudio da fala segue)
+            bs = source_for(b["src"])
+            inputs += ["-ss", str(b["ss"]), "-t", str(b["dur"]), "-i", bs]
+            fc.append(f"[{k + 1}:v]fps=30,scale=1920:1080:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,"
+                      f"setpts=PTS-STARTPTS+{b['at']}/TB[b{k}]")
+            fc.append(f"[{last}][b{k}]overlay=enable='between(t,{b['at']},{b['at'] + b['dur']})':eof_action=pass[o{k}]")
+            last = f"o{k}"
+        fc.append(f"[{last}]null[v]")
         fc.append(f"[a0]loudnorm=I={loud}:TP=-1.5:LRA=11,aresample={SR},aformat=channel_layouts=stereo[a]")
         fcs = os.path.join(WORK, f"{u['id']}.filter.txt")
         open(fcs, "w").write(";\n".join(fc))
-        run(["ffmpeg", "-v", "error", "-y", "-i", src, "-filter_complex_script", fcs, "-map", "[v]", "-map", "[a]",
-             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", out])
+        run(["ffmpeg", "-v", "error", "-y"] + inputs + ["-filter_complex_script", fcs, "-map", "[v]", "-map", "[a]"] + ENC + [out])
     else:
-        fc = (f"[0:v]fps=30,{vf_fit(w, h)}[v];[0:a]loudnorm=I={loud}:TP=-1.5:LRA=11,aresample={SR},aformat=channel_layouts=stereo[a]")
-        run(["ffmpeg", "-v", "error", "-y", "-ss", str(ss), "-t", str(to - ss), "-i", src, "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
-             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", out])
+        d = to - ss
+        if u.get("push") and w >= h:  # aproximação lenta (zoom 0 -> 7 %) direto da fonte, sem perder nitidez
+            sgn = 1 if u["push"] == "in" else -1
+            f0, f1 = (1.0, 1.07) if sgn > 0 else (1.07, 1.0)
+            ex = f"({f0}+({f1}-{f0})*t/{d:.2f})"
+            vf = f"fps=30,scale=w='1920*{ex}':h='1080*{ex}':eval=frame:flags=lanczos,crop=1920:1080,setsar=1"
+        else:
+            vf = f"fps=30,{vf_fit(w, h)}"
+            vf = vf.replace("scale=1920:1080:force", "scale=1920:1080:flags=lanczos:force")
+        fc = f"[0:v]{vf}[v];[0:a]loudnorm=I={loud}:TP=-1.5:LRA=11,aresample={SR},aformat=channel_layouts=stereo[a]"
+        run(["ffmpeg", "-v", "error", "-y", "-ss", str(ss), "-t", str(d), "-i", src, "-filter_complex", fc, "-map", "[v]", "-map", "[a]"] + ENC + [out])
     rendered.append(out)
     print("ok", u["id"], flush=True)
 
@@ -170,17 +175,22 @@ run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "2", "
      "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", str(SR), mixwav])
 
 # etiquetas (sequências PNG com alfa) por cima do vídeo
-tags = [(u["tag"], s) for u, s in zip(units, starts) if u.get("tag")]
+tags = [(dict(u["tag"], x=0, y=0), s + u["tag"].get("delay", 0.4)) for u, s in zip(units, starts) if u.get("tag")]
+for u, s in zip(units, starts):
+    for o in u.get("overlay", []):
+        tags.append((o, s + o["at"]))
 cmd = ["ffmpeg", "-v", "error", "-y", "-i", base, "-i", mixwav]
 for t, s in tags:
-    cmd += ["-itsoffset", f"{s + t.get('delay', 0.4):.2f}", "-framerate", "30", "-i", os.path.join(APP, "out", "yt", t["dir"], "element-%03d.png")]
+    d = os.path.join(APP, "out", "yt", t["dir"])
+    pat = "element-%04d.png" if os.path.exists(os.path.join(d, "element-0001.png")) else "element-%03d.png"
+    cmd += ["-itsoffset", f"{s:.2f}", "-framerate", "30", "-i", os.path.join(d, pat)]
 chain, last = [], "0:v"
-for i in range(len(tags)):
-    chain.append(f"[{last}][{i + 2}:v]overlay=0:0:eof_action=pass:format=auto[o{i}]"); last = f"o{i}"
+for i, (t, s) in enumerate(tags):
+    chain.append(f"[{last}][{i + 2}:v]overlay={t.get('x', 0)}:{t.get('y', 0)}:eof_action=pass:format=auto[o{i}]"); last = f"o{i}"
 out = os.path.join(APP, "out", plan.get("out", "utr-youtube.mp4"))
 os.makedirs(os.path.dirname(out), exist_ok=True)
 cmd += (["-filter_complex", ";".join(chain), "-map", f"[{last}]"] if chain else ["-map", "0:v"])
-cmd += ["-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", out]
+cmd += ["-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", str(plan.get("final_crf", 17)), "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", out]
 run(cmd)
 print("PRONTO", out, f"{total:.1f}s")
 json.dump({"starts": [round(float(x), 2) for x in starts], "ids": [u["id"] for u in units]}, open(os.path.join(WORK, "timeline.json"), "w"))

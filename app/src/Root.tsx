@@ -2,7 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { Modelo } from "./modelo/Modelo";
 import type { ModeloProps } from "./modelo/types";
-import { YtIntro, YtTag } from "./yt/Yt";
+import { YtIntro, YtMeta, YtPlacar, YtTag } from "./yt/Yt";
 
 const modeloDefaults: ModeloProps = {
   speaker: "falas.mp4", durationSeconds: 20, fps: 30, splitRatio: 0.51, faceY: 10,
@@ -25,5 +25,11 @@ export const Root: React.FC = () => (
     defaultProps={{ kicker: "Diego Olivotti", title: "Torneio UTR", subtitle: "Bastidores", from: "6,94", to: "7,0", note: "A meta do dia" }} />
   <Composition id="YtTag" component={YtTag} width={1920} height={1080} fps={30} durationInFrames={105}
     defaultProps={{ label: "Jogo 2", sub: "Brunão" }} />
+  <Composition id="YtPlacar" component={YtPlacar} width={760} height={420} fps={30}
+    calculateMetadata={({ props }) => ({ durationInFrames: Math.round(props.length * 30) })}
+    defaultProps={{ title: "Placar do dia", length: 46, rows: [{ game: "Jogo 1", opp: "Rafa", score: "7-5 · W.O.", at: 0.8 }] }} />
+  <Composition id="YtMeta" component={YtMeta} width={760} height={420} fps={30}
+    calculateMetadata={({ props }) => ({ durationInFrames: Math.round(props.length * 30) })}
+    defaultProps={{ kicker: "Meta do dia", value: "UTR 7", text: "Batida.", length: 6 }} />
   </>
 );
